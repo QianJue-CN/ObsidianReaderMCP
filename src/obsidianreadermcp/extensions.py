@@ -13,13 +13,13 @@ from collections import defaultdict, Counter
 
 from .client import ObsidianClient
 from .models import (
-    Note, 
-    NoteMetadata, 
-    BatchOperation, 
-    Template, 
-    BackupInfo, 
-    LinkInfo, 
-    VaultStats
+    Note,
+    NoteMetadata,
+    BatchOperation,
+    Template,
+    BackupInfo,
+    LinkInfo,
+    VaultStats,
 )
 from .exceptions import ObsidianError, ValidationError
 
@@ -29,29 +29,29 @@ logger = logging.getLogger(__name__)
 
 class ObsidianExtensions:
     """Extended functionality for Obsidian vault management."""
-    
+
     def __init__(self, client: ObsidianClient):
         """Initialize extensions with an Obsidian client.
-        
+
         Args:
             client: Connected ObsidianClient instance
         """
         self.client = client
         self.templates: Dict[str, Template] = {}
-    
+
     # Batch Operations
-    
+
     async def batch_create_notes(
         self,
         notes_data: List[Dict[str, Any]],
         continue_on_error: bool = True,
     ) -> Dict[str, Any]:
         """Create multiple notes in batch.
-        
+
         Args:
             notes_data: List of note data dictionaries
             continue_on_error: Whether to continue if one note fails
-            
+
         Returns:
             Results summary with success/failure counts
         """
@@ -61,22 +61,22 @@ class ObsidianExtensions:
             "failed": 0,
             "errors": [],
         }
-        
+
         for i, note_data in enumerate(notes_data):
             try:
                 path = note_data["path"]
                 content = note_data.get("content", "")
                 metadata = None
-                
+
                 if "tags" in note_data or "frontmatter" in note_data:
                     metadata = NoteMetadata(
                         tags=note_data.get("tags", []),
                         frontmatter=note_data.get("frontmatter", {}),
                     )
-                
+
                 await self.client.create_note(path, content, metadata)
                 results["successful"] += 1
-                
+
             except Exception as e:
                 results["failed"] += 1
                 error_info = {
@@ -85,23 +85,23 @@ class ObsidianExtensions:
                     "error": str(e),
                 }
                 results["errors"].append(error_info)
-                
+
                 if not continue_on_error:
                     break
-        
+
         return results
-    
+
     async def batch_update_notes(
         self,
         updates: List[Dict[str, Any]],
         continue_on_error: bool = True,
     ) -> Dict[str, Any]:
         """Update multiple notes in batch.
-        
+
         Args:
             updates: List of update dictionaries with path and changes
             continue_on_error: Whether to continue if one update fails
-            
+
         Returns:
             Results summary with success/failure counts
         """
@@ -111,22 +111,22 @@ class ObsidianExtensions:
             "failed": 0,
             "errors": [],
         }
-        
+
         for i, update_data in enumerate(updates):
             try:
                 path = update_data["path"]
                 content = update_data.get("content")
                 metadata = None
-                
+
                 if "tags" in update_data or "frontmatter" in update_data:
                     metadata = NoteMetadata(
                         tags=update_data.get("tags"),
                         frontmatter=update_data.get("frontmatter"),
                     )
-                
+
                 await self.client.update_note(path, content, metadata)
                 results["successful"] += 1
-                
+
             except Exception as e:
                 results["failed"] += 1
                 error_info = {
@@ -135,23 +135,23 @@ class ObsidianExtensions:
                     "error": str(e),
                 }
                 results["errors"].append(error_info)
-                
+
                 if not continue_on_error:
                     break
-        
+
         return results
-    
+
     async def batch_delete_notes(
         self,
         paths: List[str],
         continue_on_error: bool = True,
     ) -> Dict[str, Any]:
         """Delete multiple notes in batch.
-        
+
         Args:
             paths: List of note paths to delete
             continue_on_error: Whether to continue if one deletion fails
-            
+
         Returns:
             Results summary with success/failure counts
         """
@@ -161,12 +161,12 @@ class ObsidianExtensions:
             "failed": 0,
             "errors": [],
         }
-        
+
         for i, path in enumerate(paths):
             try:
                 await self.client.delete_note(path)
                 results["successful"] += 1
-                
+
             except Exception as e:
                 results["failed"] += 1
                 error_info = {
@@ -175,14 +175,14 @@ class ObsidianExtensions:
                     "error": str(e),
                 }
                 results["errors"].append(error_info)
-                
+
                 if not continue_on_error:
                     break
-        
+
         return results
-    
+
     # Template System
-    
+
     def create_template(
         self,
         name: str,
@@ -191,50 +191,51 @@ class ObsidianExtensions:
         description: Optional[str] = None,
     ) -> Template:
         """Create a new note template.
-        
+
         Args:
             name: Template name
             content: Template content with variables as {{variable_name}}
             variables: List of variable names
             description: Template description
-            
+
         Returns:
             Created template
         """
         if variables is None:
             # Extract variables from content
             import re
-            variables = re.findall(r'\{\{(\w+)\}\}', content)
-        
+
+            variables = re.findall(r"\{\{(\w+)\}\}", content)
+
         template = Template(
             name=name,
             content=content,
             variables=variables,
             description=description,
         )
-        
+
         self.templates[name] = template
         return template
-    
+
     def get_template(self, name: str) -> Optional[Template]:
         """Get a template by name.
-        
+
         Args:
             name: Template name
-            
+
         Returns:
             Template if found, None otherwise
         """
         return self.templates.get(name)
-    
+
     def list_templates(self) -> List[Template]:
         """List all available templates.
-        
+
         Returns:
             List of templates
         """
         return list(self.templates.values())
-    
+
     async def create_note_from_template(
         self,
         template_name: str,
@@ -243,36 +244,36 @@ class ObsidianExtensions:
         metadata: Optional[NoteMetadata] = None,
     ) -> Note:
         """Create a note from a template.
-        
+
         Args:
             template_name: Name of the template to use
             path: Path for the new note
             variables: Values for template variables
             metadata: Additional metadata for the note
-            
+
         Returns:
             Created note
-            
+
         Raises:
             ValidationError: If template not found or variables missing
         """
         template = self.get_template(template_name)
         if not template:
             raise ValidationError(f"Template '{template_name}' not found")
-        
+
         if variables is None:
             variables = {}
-        
+
         # Check for missing variables
         missing_vars = set(template.variables) - set(variables.keys())
         if missing_vars:
             raise ValidationError(f"Missing template variables: {missing_vars}")
-        
+
         # Replace variables in content
         content = template.content
         for var_name, var_value in variables.items():
             content = content.replace(f"{{{{{var_name}}}}}", var_value)
-        
+
         # Create the note
         return await self.client.create_note(path, content, metadata)
 
@@ -301,16 +302,18 @@ class ObsidianExtensions:
         backup_dir = Path(backup_path)
         backup_dir.mkdir(parents=True, exist_ok=True)
 
-        backup_file = backup_dir / f"vault_backup_{timestamp.strftime('%Y%m%d_%H%M%S')}.zip"
+        backup_file = (
+            backup_dir / f"vault_backup_{timestamp.strftime('%Y%m%d_%H%M%S')}.zip"
+        )
 
         total_size = 0
         checksum_data = []
 
-        with zipfile.ZipFile(backup_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        with zipfile.ZipFile(backup_file, "w", zipfile.ZIP_DEFLATED) as zipf:
             for note_path in note_paths:
                 try:
                     note = await self.client.get_note(note_path)
-                    content_bytes = note.content.encode('utf-8')
+                    content_bytes = note.content.encode("utf-8")
 
                     zipf.writestr(note_path, content_bytes)
                     total_size += len(content_bytes)
@@ -347,8 +350,8 @@ class ObsidianExtensions:
         links = []
 
         # Patterns for different link types
-        wikilink_pattern = r'\[\[([^\]]+)\]\]'
-        markdown_link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+        wikilink_pattern = r"\[\[([^\]]+)\]\]"
+        markdown_link_pattern = r"\[([^\]]+)\]\(([^)]+)\)"
 
         for note_path in note_paths:
             try:
@@ -362,27 +365,31 @@ class ObsidianExtensions:
                     context_end = min(len(content), match.end() + 50)
                     context = content[context_start:context_end]
 
-                    links.append(LinkInfo(
-                        source=note_path,
-                        target=target,
-                        link_type="wikilink",
-                        context=context,
-                    ))
+                    links.append(
+                        LinkInfo(
+                            source=note_path,
+                            target=target,
+                            link_type="wikilink",
+                            context=context,
+                        )
+                    )
 
                 # Find markdown links
                 for match in re.finditer(markdown_link_pattern, content):
                     target = match.group(2)
-                    if target.endswith('.md'):  # Only internal links
+                    if target.endswith(".md"):  # Only internal links
                         context_start = max(0, match.start() - 50)
                         context_end = min(len(content), match.end() + 50)
                         context = content[context_start:context_end]
 
-                        links.append(LinkInfo(
-                            source=note_path,
-                            target=target,
-                            link_type="markdown",
-                            context=context,
-                        ))
+                        links.append(
+                            LinkInfo(
+                                source=note_path,
+                                target=target,
+                                link_type="markdown",
+                                context=context,
+                            )
+                        )
 
             except Exception as e:
                 logger.warning(f"Failed to analyze links in {note_path}: {e}")
@@ -402,8 +409,8 @@ class ObsidianExtensions:
         linked_notes = set()
         for link in links:
             target = link.target
-            if not target.endswith('.md'):
-                target += '.md'
+            if not target.endswith(".md"):
+                target += ".md"
             linked_notes.add(target)
 
         # Find orphaned notes
@@ -422,8 +429,8 @@ class ObsidianExtensions:
         broken_links = []
         for link in links:
             target = link.target
-            if not target.endswith('.md'):
-                target += '.md'
+            if not target.endswith(".md"):
+                target += ".md"
 
             if target not in note_paths:
                 broken_links.append(link)
@@ -463,12 +470,16 @@ class ObsidianExtensions:
                     tag_counter[tag] += 1
 
                 # Extract creation date (if available in frontmatter)
-                if note.metadata.frontmatter.get('created'):
+                if note.metadata.frontmatter.get("created"):
                     try:
-                        created_str = str(note.metadata.frontmatter['created'])
+                        created_str = str(note.metadata.frontmatter["created"])
                         if created_str:
                             # Try to parse date (basic implementation)
-                            date_part = created_str.split('T')[0] if 'T' in created_str else created_str.split(' ')[0]
+                            date_part = (
+                                created_str.split("T")[0]
+                                if "T" in created_str
+                                else created_str.split(" ")[0]
+                            )
                             if len(date_part) >= 7:  # YYYY-MM format at minimum
                                 month_key = date_part[:7]  # YYYY-MM
                                 creation_dates[month_key] += 1
@@ -540,7 +551,9 @@ class ObsidianExtensions:
                 try:
                     if isinstance(date_value, str):
                         # Try to parse ISO format
-                        note_date = datetime.fromisoformat(date_value.replace('Z', '+00:00'))
+                        note_date = datetime.fromisoformat(
+                            date_value.replace("Z", "+00:00")
+                        )
                     elif isinstance(date_value, datetime):
                         note_date = date_value
                     else:

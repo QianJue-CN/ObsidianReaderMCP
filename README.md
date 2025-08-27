@@ -1,5 +1,10 @@
 # ObsidianReaderMCP
 
+[![GitHub](https://img.shields.io/badge/GitHub-QianJue--CN%2FObsidianReaderMCP-blue?logo=github)](https://github.com/QianJue-CN/ObsidianReaderMCP)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-green)](https://modelcontextprotocol.io/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
 A comprehensive Python MCP (Model Context Protocol) server for managing Obsidian vaults through the obsidian-local-rest-api plugin.
 
 ## Features
@@ -28,14 +33,36 @@ A comprehensive Python MCP (Model Context Protocol) server for managing Obsidian
 
 ### Prerequisites
 1. **Obsidian** with the **obsidian-local-rest-api** plugin installed and configured
-2. **Python 3.8+**
-3. **uv** package manager (recommended) or pip
+2. **Python 3.10+**
 
-### Install from Source
+### Method 1: Using uvx (Recommended)
+
+The easiest way to use ObsidianReaderMCP is with `uvx`, which allows you to run it without installation:
+
+```bash
+# Run directly without installation
+uvx obsidianreadermcp
+
+# Or install as a tool
+uv tool install obsidianreadermcp
+obsidianreadermcp
+```
+
+### Method 2: Using pip
+
+```bash
+# Install from PyPI
+pip install obsidianreadermcp
+
+# Run the server
+obsidianreadermcp
+```
+
+### Method 3: Install from Source
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/QianJue-CN/ObsidianReaderMCP.git
 cd ObsidianReaderMCP
 
 # Install dependencies
@@ -53,7 +80,7 @@ Create a `.env` file in the project root (copy from `.env.example`):
 
 ```env
 # Obsidian API Configuration
-OBSIDIAN_HOST=192.168.0.104
+OBSIDIAN_HOST=localhost
 OBSIDIAN_PORT=27123
 OBSIDIAN_API_KEY=your_api_key_here
 OBSIDIAN_USE_HTTPS=false
@@ -127,15 +154,58 @@ asyncio.run(main())
 ### As an MCP Server
 
 ```bash
-# Run the MCP server
+# Method 1: Using uvx (recommended)
+uvx obsidianreadermcp
+
+# Method 2: Using installed package
+obsidianreadermcp
+
+# Method 3: Using Python module
 python -m obsidianreadermcp.server
 
-# Or programmatically
+# Method 4: Programmatically
 python -c "
 import asyncio
 from obsidianreadermcp.server import main
 asyncio.run(main())
 "
+```
+
+### Claude Desktop Integration
+
+Add to your Claude Desktop configuration file:
+
+```json
+{
+  "mcpServers": {
+    "obsidian": {
+      "command": "uvx",
+      "args": ["obsidianreadermcp"],
+      "env": {
+        "OBSIDIAN_HOST": "localhost",
+        "OBSIDIAN_PORT": "27123",
+        "OBSIDIAN_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+Or if you have it installed globally:
+
+```json
+{
+  "mcpServers": {
+    "obsidian": {
+      "command": "obsidianreadermcp",
+      "env": {
+        "OBSIDIAN_HOST": "localhost",
+        "OBSIDIAN_PORT": "27123",
+        "OBSIDIAN_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
 ```
 
 ### Extended Features
@@ -259,19 +329,33 @@ See the `examples/` directory for more detailed usage examples:
 
 ## Contributing
 
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
+5. Run the test suite (`uv run pytest`)
+6. Commit your changes (`git commit -m 'Add some amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+## Issues and Support
+
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/QianJue-CN/ObsidianReaderMCP/issues)
+- 💡 **Feature Requests**: [GitHub Issues](https://github.com/QianJue-CN/ObsidianReaderMCP/issues)
+- 📖 **Documentation**: [API Documentation](docs/API.md)
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
 - [obsidian-local-rest-api](https://github.com/coddingtonbear/obsidian-local-rest-api) - The Obsidian plugin that makes this possible
-- [MCP (Model Context Protocol)](https://github.com/modelcontextprotocol) - The protocol for AI assistant integration
+- [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) - The protocol for AI assistant integration
 - [Obsidian](https://obsidian.md/) - The knowledge management application
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=QianJue-CN/ObsidianReaderMCP&type=Date)](https://star-history.com/#QianJue-CN/ObsidianReaderMCP&Date)

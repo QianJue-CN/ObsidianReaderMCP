@@ -10,3 +10,12 @@ wheels/
 .venv
 
 .env
+
+# Test files and demo files
+test_*.py
+debug_*.py
+demo_*.py
+demo.py
+mcp_demo.py
+get_travel_notes.py
+publis.py
