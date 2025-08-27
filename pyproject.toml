@@ -1,6 +1,6 @@
 [project]
 name = "obsidianreadermcp"
-version = "0.1.5"
+version = "0.1.6"
 description = "A comprehensive Python MCP server for managing Obsidian vaults via obsidian-local-rest-api"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -53,7 +53,7 @@ class ObsidianClient:
         await self.disconnect()
 
     async def connect(self) -> None:
-        """Establish connection to Obsidian API."""
+        """Establish connection to Obsidian API with retry mechanism."""
         if self._client is None:
             self._client = httpx.AsyncClient(
                 base_url=self.config.base_url,
@@ -61,13 +61,23 @@ class ObsidianClient:
                 timeout=self.config.timeout,
             )
 
-            # Test connection
-            try:
-                await self._make_request("GET", "/")
-                logger.info(f"Connected to Obsidian API at {self.config.base_url}")
-            except Exception as e:
-                await self.disconnect()
-                raise ConnectionError(f"Failed to connect to Obsidian API: {e}")
+            # Test connection with retry mechanism
+            max_retries = 3
+            retry_delay = 1.0
+
+            for attempt in range(max_retries):
+                try:
+                    await self._make_request("GET", "/")
+                    logger.info(f"Connected to Obsidian API at {self.config.base_url}")
+                    return
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Connection attempt {attempt + 1} failed: {e}. Retrying in {retry_delay}s...")
+                        await asyncio.sleep(retry_delay)
+                        retry_delay *= 2  # Exponential backoff
+                    else:
+                        await self.disconnect()
+                        raise ConnectionError(f"Failed to connect to Obsidian API after {max_retries} attempts: {e}")
 
     async def disconnect(self) -> None:
         """Close connection to Obsidian API."""

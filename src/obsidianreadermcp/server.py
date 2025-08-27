@@ -20,6 +20,7 @@ from mcp.types import (
     ImageContent,
     EmbeddedResource,
 )
+from mcp.server.lowlevel.server import NotificationOptions
 
 from .client import ObsidianClient
 from .config import get_config
@@ -528,7 +529,10 @@ class ObsidianMCPServer:
                     InitializationOptions(
                         server_name=self.mcp_config.server_name,
                         server_version=self.mcp_config.version,
-                        capabilities=self.server.get_capabilities(),
+                        capabilities=self.server.get_capabilities(
+                            notification_options=NotificationOptions(),
+                            experimental_capabilities={}
+                        ),
                     ),
                 )
         except KeyboardInterrupt:
